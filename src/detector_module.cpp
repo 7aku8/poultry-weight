@@ -10,11 +10,9 @@ const float Detector::MAX_PERCENTAGE_DIFF_BETWEEN_SAMPLES = 2.0f;
 
 RunningMedian::RunningMedian(size_t max_size) : max_size(max_size) {}
 
-void RunningMedian::add(float value)
-{
+void RunningMedian::add(float value) {
     elements.push_back(value);
-    if (elements.size() > max_size)
-    {
+    if (elements.size() > max_size) {
         elements.erase(elements.begin());
     }
     std::sort(elements.begin(), elements.end());
@@ -31,19 +29,16 @@ void RunningMedian::clear() {
 /**
  * @brief Returns median
 */
-float RunningMedian::get() const
-{
+float RunningMedian::get() const {
     size_t size = elements.size();
-    if (size == 0)
-    {
+    if (size == 0) {
         return 0.0;
     }
 
     std::vector<float> sorted_copy(elements); // Make a copy since nth_element modifies the order
     std::nth_element(sorted_copy.begin(), sorted_copy.begin() + size / 2, sorted_copy.end());
 
-    if (size % 2 == 0)
-    {
+    if (size % 2 == 0) {
         // If even number of elements, average the middle two
         return (sorted_copy[size / 2 - 1] + sorted_copy[size / 2]) / 2.0;
     }
@@ -61,17 +56,15 @@ float RunningMedian::get_last_sample() const {
 /**
  * @brief Returns true if actual number of elements considered in median is equal to its max size
  */
-bool RunningMedian::is_full() const
-{
+bool RunningMedian::is_full() const {
     return elements.size() == max_size;
 }
 
-Measurement::Measurement(float weight, int timestamp) : weight(weight), timestamp(timestamp){};
+Measurement::Measurement(float weight, int timestamp) : weight(weight), timestamp(timestamp) {};
 
-Detector::Detector() : status(PENDING), detected_measurement(0.0, 0), median(MEDIAN_ELEMENTS), stable_since(0){};
+Detector::Detector() : median(MEDIAN_ELEMENTS), detected_measurement(0.0, 0), status(PENDING), stable_since(0) {};
 
-void Detector::add_measurement(float measurement)
-{
+void Detector::add_measurement(float measurement) {
     // May need to be deleted, but may be useful as well, don't know yet
     if (status != PENDING) {
         detector_logs.debug("Waiting to get reading from.");
@@ -79,7 +72,7 @@ void Detector::add_measurement(float measurement)
     }
 
     // Checking negative period
-    if (measurement < 0) {
+    if (measurement < -2) {
         if (negative_since == 0) {
             negative_since = millis();
             return;
@@ -102,8 +95,7 @@ void Detector::add_measurement(float measurement)
     float previous_sample = median.get_last_sample();
     median.add(measurement);
 
-    if (!median.is_full())
-    {
+    if (!median.is_full()) {
         detector_logs.debug("Too few samples to detect anything.");
         return;
     }
@@ -112,19 +104,19 @@ void Detector::add_measurement(float measurement)
 
     bool diff_too_large = (diff / measurement / 100) > MAX_PERCENT_WEIGHT_CHANGE;
 
-    if (diff_too_large)
-    {
+    if (diff_too_large) {
         detector_logs.debug("Diff too large.");
 
         reset();
         return;
     }
 
-    bool is_drift_too_large = (abs(previous_sample - measurement) / measurement / 100) > MAX_PERCENTAGE_DIFF_BETWEEN_SAMPLES;
+    bool is_drift_too_large =
+            (abs(previous_sample - measurement) / measurement / 100) > MAX_PERCENTAGE_DIFF_BETWEEN_SAMPLES;
 
     if (is_drift_too_large) {
         detector_logs.debug("Drift between samples is too large.");
-        
+
         reset();
         return;
     }
@@ -146,7 +138,7 @@ void Detector::add_measurement(float measurement)
     if (is_time_diff) {
         if (!is_enough_weight) {
             detector_logs.debug("Detected measurement too low.");
-            
+
             reset();
             return;
         }
@@ -161,16 +153,14 @@ void Detector::add_measurement(float measurement)
 /**
  * @brief Returns true if detector detected measurement and is waiting to get it from itself
 */
-Status Detector::get_status() const
-{
+Status Detector::get_status() const {
     return status;
 }
 
 /**
  * @brief Returns detected measurement and resets detector state
 */
-Measurement Detector::get_detected()
-{
+Measurement Detector::get_detected() {
     Measurement saved = detected_measurement;
     reset();
 
@@ -197,8 +187,7 @@ void Detector::set_require_tare() {
 /**
  * @brief Makes detector not ready to get data from
 */
-void Detector::reset()
-{
+void Detector::reset() {
     status = PENDING;
     detected_measurement.weight = 0;
     detected_measurement.timestamp = 0;

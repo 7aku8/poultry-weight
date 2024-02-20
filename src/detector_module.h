@@ -11,7 +11,7 @@
 namespace detector {
     class RunningMedian {
     private:
-        float last_sample;
+        float last_sample{};
         std::vector<float> elements;
         const size_t max_size;
 
@@ -75,7 +75,7 @@ namespace detector {
         unsigned long stable_since;
 
         // Contains time when weight started to show negative value
-        unsigned long negative_since;
+        unsigned long negative_since{};
 
         void set_ready(float detected);
 
