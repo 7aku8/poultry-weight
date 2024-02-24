@@ -21,21 +21,16 @@ unsigned long previous_measurement_time = 0;
 
 bool _is_taring = false;
 
-void weight::set_refresh_time()
-{
+void weight::set_refresh_time() {
     previous_measurement_time = millis();
 }
 
-bool weight::should_refresh()
-{
+bool weight::should_refresh() {
     unsigned long current_time = millis();
     return current_time - previous_measurement_time >= 1000.0 / SAMPLES_PER_SECOND;
 }
 
-void refresh_offset_value_and_save_to_eeprom();
-
-void weight::init()
-{
+void weight::init() {
     LoadCell.begin(gain);
 
 #if defined(ESP8266) || defined(ESP32)
@@ -43,24 +38,20 @@ void weight::init()
 #endif
 
     float calibrationValue = 0;
-    EEPROM.get(calVal_eepromAdress, calibrationValue); // uncomment this if you want to fetch the calibration value from eeprom
+    EEPROM.get(calVal_eepromAdress,
+               calibrationValue); // uncomment this if you want to fetch the calibration value from eeprom
     LoadCell.setCalFactor(calibrationValue);
 
     LoadCell.start(stabilizingtime, _tare);
-    if (LoadCell.getTareTimeoutFlag() || LoadCell.getSignalTimeoutFlag())
-    {
+    if (LoadCell.getTareTimeoutFlag() || LoadCell.getSignalTimeoutFlag()) {
         logs.debug("Timeout, check MCU>HX711 wiring and pin designations");
-        while (1)
-            ;
-    }
-    else
-    {
+        while (1);
+    } else {
         LoadCell.setCalFactor(calibrationValue);
         LoadCell.setSamplesInUse(samples);
         logs.debug("Startup is complete");
     }
-    while (!LoadCell.update())
-        ;
+    while (!LoadCell.update());
 }
 
 /**
@@ -68,13 +59,11 @@ void weight::init()
  * @param current_reading Variable to save measurement to
  * @returns True if measurement captured, otherwise false
 */
-bool weight::capture_measurement(float &current_reading)
-{
+bool weight::capture_measurement(float &current_reading) {
     bool should_capture = weight::should_refresh();
     uint8_t should_update = LoadCell.update();
 
-    if (should_capture && should_update == 1)
-    {
+    if (should_capture && should_update == 1) {
         current_reading = LoadCell.getData();
         weight::set_refresh_time();
     }
@@ -82,8 +71,7 @@ bool weight::capture_measurement(float &current_reading)
     return should_capture;
 }
 
-void weight::calibrate()
-{
+void weight::calibrate() {
     logs.log("***");
     logs.log("Start calibration:");
     logs.log("Place the load cell an a level stable surface.");
@@ -91,20 +79,16 @@ void weight::calibrate()
     logs.log("Send 't' from serial monitor to set the tare offset.");
 
     boolean _resume = false;
-    while (_resume == false)
-    {
+    while (!_resume) {
         LoadCell.update();
-        if (Serial.available() > 0)
-        {
-            if (Serial.available() > 0)
-            {
+        if (Serial.available() > 0) {
+            if (Serial.available() > 0) {
                 char inByte = Serial.read();
                 if (inByte == 't')
                     LoadCell.tareNoDelay();
             }
         }
-        if (LoadCell.getTareStatus() == true)
-        {
+        if (LoadCell.getTareStatus()) {
             logs.log("Tare complete");
             _resume = true;
         }
@@ -115,14 +99,11 @@ void weight::calibrate()
 
     float known_mass = 0;
     _resume = false;
-    while (_resume == false)
-    {
+    while (_resume == false) {
         LoadCell.update();
-        if (Serial.available() > 0)
-        {
+        if (Serial.available() > 0) {
             known_mass = Serial.parseFloat();
-            if (known_mass != 0)
-            {
+            if (known_mass != 0) {
                 logs.log("Known mass is: ");
                 logs.log(known_mass);
                 _resume = true;
@@ -141,13 +122,10 @@ void weight::calibrate()
     logs.log("? y/n");
 
     _resume = false;
-    while (_resume == false)
-    {
-        if (Serial.available() > 0)
-        {
+    while (!_resume) {
+        if (Serial.available() > 0) {
             char inByte = Serial.read();
-            if (inByte == 'y')
-            {
+            if (inByte == 'y') {
 #if defined(ESP8266) || defined(ESP32)
                 EEPROM.begin(512);
 #endif
@@ -161,9 +139,7 @@ void weight::calibrate()
                 logs.log(" saved to EEPROM address: ");
                 logs.log(calVal_eepromAdress);
                 _resume = true;
-            }
-            else if (inByte == 'n')
-            {
+            } else if (inByte == 'n') {
                 logs.log("Value not saved to EEPROM");
                 _resume = true;
             }
@@ -177,8 +153,7 @@ void weight::calibrate()
     logs.log("***");
 }
 
-void weight::change_saved_cal_factor()
-{
+void weight::change_saved_cal_factor() {
     float oldCalibrationValue = LoadCell.getCalFactor();
     boolean _resume = false;
     logs.log("***");
@@ -186,13 +161,10 @@ void weight::change_saved_cal_factor()
     logs.log(oldCalibrationValue);
     logs.log("Now, send the new value from serial monitor, i.e. 696.0");
     float newCalibrationValue;
-    while (_resume == false)
-    {
-        if (Serial.available() > 0)
-        {
+    while (!_resume) {
+        if (Serial.available() > 0) {
             newCalibrationValue = Serial.parseFloat();
-            if (newCalibrationValue != 0)
-            {
+            if (newCalibrationValue != 0) {
                 logs.log("New calibration value is: ");
                 logs.log(newCalibrationValue);
                 LoadCell.setCalFactor(newCalibrationValue);
@@ -204,13 +176,10 @@ void weight::change_saved_cal_factor()
     logs.log("Save this value to EEPROM adress ");
     logs.log(calVal_eepromAdress);
     logs.log("? y/n");
-    while (_resume == false)
-    {
-        if (Serial.available() > 0)
-        {
+    while (!_resume) {
+        if (Serial.available() > 0) {
             char inByte = Serial.read();
-            if (inByte == 'y')
-            {
+            if (inByte == 'y') {
 #if defined(ESP8266) || defined(ESP32)
                 EEPROM.begin(512);
 #endif
@@ -224,9 +193,7 @@ void weight::change_saved_cal_factor()
                 logs.log(" saved to EEPROM address: ");
                 logs.log(calVal_eepromAdress);
                 _resume = true;
-            }
-            else if (inByte == 'n')
-            {
+            } else if (inByte == 'n') {
                 logs.log("Value not saved to EEPROM");
                 _resume = true;
             }
@@ -237,8 +204,7 @@ void weight::change_saved_cal_factor()
 }
 
 // zero offset value (tare), calculate and save to EEprom:
-void refresh_offset_value_and_save_to_eeprom()
-{
+void refresh_offset_value_and_save_to_eeprom() {
     long _offset = 0;
     logs.log("Calculating tare offset value...");
     LoadCell.tare();                                 // calculate the new tare / zero offset value (blocking)
@@ -257,10 +223,8 @@ void refresh_offset_value_and_save_to_eeprom()
 /**
  * @brief Simply checks if async tare has been completed, logs to serial monitor if yes
  */
-bool weight::check_tare_completed()
-{
-    if (LoadCell.getTareStatus())
-    {
+bool weight::check_tare_completed() {
+    if (LoadCell.getTareStatus()) {
         _is_taring = false;
         return true;
     }
