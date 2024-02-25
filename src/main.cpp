@@ -3,14 +3,16 @@
 #include "logger_module.h"
 #include "weight_module.h"
 #include "detector_module.h"
-#include "GEM.h"
+#include "keyboard_module.h"
+
+keyboard::Keyboard keys(A0);
 
 void setup() {
     lcd::init();
-//    lcd::draw_splash_screen();
 
     logger::init();
     weight::init();
+    keys.init();
 }
 
 float weight_reading = 0.0;
@@ -57,6 +59,11 @@ void loop() {
             break;
         case detector::PENDING:
             break;
+    }
+
+    if (keys.was_button_pressed()) {
+        int pressed_button = keys.get_pressed_button();
+        lcd::register_pressed_key(pressed_button);
     }
 
     // Check if the specified refresh interval has passed
