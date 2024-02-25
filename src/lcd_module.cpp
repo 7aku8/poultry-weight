@@ -280,20 +280,6 @@ GEMItem calibrate_item("Kalibracja", calibrate);
 GEMItem tare_item("Taruj", tare);
 // END Calibration settings page
 
-const unsigned long REFRESH_INTERVAL = 500; // 1000 milliseconds = 1 second
-
-unsigned long previous_refresh_time = 0;
-
-void lcd::set_refresh_time() {
-    previous_refresh_time = millis();
-}
-
-
-bool lcd::should_refresh() {
-    unsigned long current_time = millis();
-    return current_time - previous_refresh_time >= REFRESH_INTERVAL;
-}
-
 void setupMenu() {
     // Time settings page
     timePage.addMenuItem(hour_item);
@@ -535,21 +521,7 @@ void lcd::register_pressed_key(int key) {
     }
 }
 
-void lcd::draw_weight(float current, float average, float latest, int measurements_number) {
-    if (Serial.available() > 0) {
-        char inByte = Serial.read();
-
-        if (inByte == 'm') {
-            current_page = SETTINGS;
-        } else if (inByte == 'z') {
-            current_page = MAIN;
-        } else if (inByte == 'x') {
-            current_page = DETAILS;
-        } else if (inByte == 'c') {
-            current_page = HISTORY;
-        }
-    }
-
+void lcd::draw_page(float current, float average, float latest, int measurements_number) {
     switch (current_page) {
         case MAIN:
             main_page(current, average, latest, measurements_number);
@@ -564,41 +536,4 @@ void lcd::draw_weight(float current, float average, float latest, int measuremen
             history_page();
             break;
     }
-//    if (!lcd::should_refresh()) {
-//        return;
-//    }
-//
-//    u8g2_lcd.clearBuffer();
-//    u8g2_lcd.setFont(u8g2_font_ncenB08_tr);
-//
-//    char buffer[3][20];
-//
-//    dtostrf(current, 6, 2, buffer[0]);
-//    const char *currentStr = buffer[0];
-//
-//    dtostrf(average, 6, 2, buffer[1]);
-//    const char *averageStr = buffer[1];
-//
-//    dtostrf(latest, 6, 2, buffer[2]);
-//    const char *latestStr = buffer[2];
-//
-//    u8g2_lcd.drawStr(10, 20, "CUR:");
-//    u8g2_lcd.drawStr(50, 20, currentStr);
-//
-//    u8g2_lcd.drawStr(10, 34, "AVG:");
-//    u8g2_lcd.drawStr(50, 34, averageStr);
-//
-//    u8g2_lcd.drawStr(10, 52, "LST:");
-//
-//    if (latest > 50) {
-//        u8g2_lcd.drawStr(50, 52, latestStr);
-//    } else {
-//        u8g2_lcd.drawStr(50, 52, "-");
-//    }
-//
-//    u8g2_lcd.drawFrame(5, 5, 118, 54);
-//
-//    u8g2_lcd.sendBuffer();
-//
-//    lcd::set_refresh_time();
 }

@@ -21,17 +21,9 @@
 #endif
 
 namespace lcd {
-    bool should_refresh();
-
     void init();
 
-    void draw_splash_screen();
-
-    void draw_weight(float current, float average, float latest, int measurements_number);
-
-    void open_menu();
-
-    void set_refresh_time();
+    void draw_page(float current, float average, float latest, int measurements_number);
 
     void register_pressed_key(int key);
 }

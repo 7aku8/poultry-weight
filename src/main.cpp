@@ -20,22 +20,6 @@ detector::Measurement detected_measurement(0.0, 0);
 detector::Detector weight_detector;
 
 void loop() {
-    // receive command from serial terminal
-//    if (Serial.available() > 0) {
-//        char inByte = Serial.read();
-//
-////        if (inByte == 'm') {
-////            lcd::open_menu();
-//        if (inByte == 't') {
-//            weight::tare_without_delay(); // tare
-//            weight_detector.reset();
-//        } else if (inByte == 'r') {
-//            weight::calibrate(); // calibrate
-//        } else if (inByte == 'c') {
-//            weight::change_saved_cal_factor(); // edit calibration value manually
-//        }
-//    }
-
     bool tare_just_completed = weight::check_tare_completed();
     if (tare_just_completed) {
         weight_detector.reset();
@@ -67,5 +51,5 @@ void loop() {
     }
 
     // Check if the specified refresh interval has passed
-    lcd::draw_weight(weight_reading, weight_reading, detected_measurement.weight, 69);
+    lcd::draw_page(weight_reading, weight_reading, detected_measurement.weight, 69);
 }
