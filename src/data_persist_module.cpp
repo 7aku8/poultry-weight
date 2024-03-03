@@ -26,8 +26,8 @@ void data_persist::DataPersist::save_measurement(const detector::Measurement mea
         doc["timestamp"] = measurement.timestamp.timestamp();
 
         serializeJson(doc, file);
+        file.println();
 
-        file.flush();
         file.close();
     }
 }
