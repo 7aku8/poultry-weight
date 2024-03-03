@@ -45,7 +45,8 @@ SelectOptionByte select_hour_options[] = {
 };
 GEMSelect select_hour(sizeof(select_hour_options) / sizeof(SelectOptionByte), select_hour_options);
 
-int setting_hour = 0;
+//int setting_hour = timer::get_hour();
+int setting_hour = 1;
 
 void validate_hour() {
     Serial.println("Hour: " + String(setting_hour));
@@ -119,7 +120,8 @@ SelectOptionByte select_minute_second_options[] = {
 
 GEMSelect select_minute(sizeof(select_minute_second_options) / sizeof(SelectOptionByte), select_minute_second_options);
 
-int setting_minute = 0;
+//int setting_minute = timer::get_minute();
+int setting_minute = 1;
 
 void validate_minute() {
     Serial.println("Minute: " + String(setting_minute));
@@ -129,7 +131,8 @@ GEMItem minute_item("Minuta:", setting_minute, select_minute, validate_minute);
 
 GEMSelect select_second(sizeof(select_minute_second_options) / sizeof(SelectOptionByte), select_minute_second_options);
 
-int setting_second = 0;
+//int setting_second = timer::get_second();
+int setting_second = 1;
 
 void validate_second() {
     Serial.println("Second: " + String(setting_second));
@@ -139,6 +142,8 @@ GEMItem second_item("Sekunda:", setting_second, select_second, validate_second);
 
 void save_time_to_rtc() {
     Serial.println("Save time");
+
+    timer::set_time(setting_hour, setting_minute, setting_second);
     menu.setMenuPageCurrent(menuPage);
 }
 
@@ -158,7 +163,8 @@ SelectOptionByte select_year_options[] = {
 
 GEMSelect select_year(sizeof(select_year_options) / sizeof(SelectOptionByte), select_year_options);
 
-int setting_year = 24;
+//int setting_year = timer::get_year();
+int setting_year = 1;
 
 void validate_year() {
     Serial.println("Year: " + String(setting_year));
@@ -183,6 +189,7 @@ SelectOptionByte select_month_options[] = {
 
 GEMSelect select_month(sizeof(select_month_options) / sizeof(SelectOptionByte), select_month_options);
 
+//int setting_month = timer::get_month();
 int setting_month = 1;
 
 void validate_month() {
@@ -227,6 +234,7 @@ SelectOptionByte select_day_options[] = {
 
 GEMSelect select_day(sizeof(select_day_options) / sizeof(SelectOptionByte), select_day_options);
 
+//int setting_day = timer::get_day();
 int setting_day = 1;
 
 void validate_day() {
@@ -237,6 +245,8 @@ GEMItem day_item("Dzien:", setting_day, select_day, validate_day);
 
 void save_date_to_rtc() {
     Serial.println("Save date");
+
+    timer::set_date(setting_year, setting_month, setting_day);
     menu.setMenuPageCurrent(menuPage);
 }
 
@@ -256,13 +266,23 @@ SelectOptionByte select_offset_options[] = {
 
 GEMSelect select_offset(sizeof(select_offset_options) / sizeof(SelectOptionByte), select_offset_options);
 
-int setting_offset = 1;
+int setting_offset = 8;
 
 void validate_offset() {
     Serial.println("Offset: " + String(setting_offset));
 }
 
 GEMItem offset_item("Zakres:", setting_offset, select_offset, validate_offset);
+
+void save_offset_to_eeprom() {
+    Serial.println("Save offset");
+
+    // Save offset to EEPROM
+
+    menu.setMenuPageCurrent(menuPage);
+}
+
+GEMItem save_offset("Zapisz", save_offset_to_eeprom);
 // END Offset hours settings page
 
 // Calibration settings page
@@ -329,6 +349,14 @@ void lcd::init() {
 
     menu.init();
     setupMenu();
+
+    // Set up timer data
+    setting_minute = timer::get_minute();
+    setting_second = timer::get_second();
+    setting_hour = timer::get_hour();
+    setting_year = timer::get_year();
+    setting_month = timer::get_month();
+    setting_day = timer::get_day();
 }
 
 enum Page {
@@ -389,26 +417,22 @@ void details_page(float sensor_reading) {
         u8g2_lcd.print("Zakres liczenia sredniej:");
         u8g2_lcd.setCursor(2, 20);
         u8g2_lcd.setFont(u8g2_font_pxplustandynewtv_t_all);
-        u8g2_lcd.print("12h");
+        u8g2_lcd.print("8h");
 
         // Get actual time and date
-        time_t t = now();  // Replace with your actual time retrieval method
-        struct tm *tm_info = localtime(&t);
-
         // Display actual time
         u8g2_lcd.setCursor(2, 32);
         u8g2_lcd.setFont(u8g2_font_profont10_tf);
         u8g2_lcd.print("Czas: ");
         u8g2_lcd.setFont(u8g2_font_pxplustandynewtv_t_all);
-        u8g2_lcd.println(String(tm_info->tm_hour) + ":" + String(tm_info->tm_min) + ":" + String(tm_info->tm_sec));
+        u8g2_lcd.println(timer::get_time());
 
         // Display actual date
         u8g2_lcd.setCursor(2, 42);
         u8g2_lcd.setFont(u8g2_font_profont10_tf);
         u8g2_lcd.print("Data: ");
         u8g2_lcd.setFont(u8g2_font_pxplustandynewtv_t_all);
-        u8g2_lcd.println(
-                String(tm_info->tm_mday) + "." + String(tm_info->tm_mon + 1) + "." + String(tm_info->tm_year + 1900));
+        u8g2_lcd.println(timer::get_date());
 
         // Display sensor reading
         u8g2_lcd.setCursor(2, 52);

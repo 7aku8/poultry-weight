@@ -2,6 +2,8 @@
 #define DETECTOR_MODULE_H
 
 #include "logger_module.h"
+#include "timer_module.h"
+#include <RTClib.h>
 #include <vector>
 
 // For running median
@@ -31,7 +33,7 @@ namespace detector {
 
     struct Measurement {
         float weight;
-        int timestamp;
+        DateTime timestamp;
 
     public:
         Measurement(float weight, int timestamp);

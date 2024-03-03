@@ -143,7 +143,7 @@ void Detector::add_measurement(float measurement) {
             return;
         }
 
-        detector_logs.debug("Mesurement detected:");
+        detector_logs.debug("Measurement detected:");
         detector_logs.debug(measurement);
 
         set_ready(measurement);
@@ -174,7 +174,7 @@ Measurement Detector::get_detected() {
 void Detector::set_ready(float detected) {
     status = DATA_READY;
     detected_measurement.weight = detected;
-    detected_measurement.timestamp = millis();
+    detected_measurement.timestamp = timer::get_datetime();
 }
 
 /**
@@ -190,7 +190,7 @@ void Detector::set_require_tare() {
 void Detector::reset() {
     status = PENDING;
     detected_measurement.weight = 0;
-    detected_measurement.timestamp = 0;
+    detected_measurement.timestamp = DateTime();
     stable_since = 0;
 
     median.clear();

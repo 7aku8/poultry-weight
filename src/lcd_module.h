@@ -7,6 +7,7 @@
 #include <TimeLib.h>
 #include "GEMPage.h"
 #include "GEM_u8g2.h"
+#include "timer_module.h"
 #include "images/logo.xbm"
 
 #ifdef U8X8_HAVE_HW_SPI

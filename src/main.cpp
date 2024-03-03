@@ -4,13 +4,15 @@
 #include "weight_module.h"
 #include "detector_module.h"
 #include "keyboard_module.h"
+#include "timer_module.h"
 
 keyboard::Keyboard keys(A0);
 
 void setup() {
+    logger::init();
+    timer::init();
     lcd::init();
 
-    logger::init();
     weight::init();
     keys.init();
 }
@@ -36,6 +38,10 @@ void loop() {
     switch (detector_status) {
         case detector::DATA_READY:
             detected_measurement = weight_detector.get_detected();
+            Serial.print("Detected weight: ");
+            Serial.println(detected_measurement.weight);
+            Serial.print("Detected timestamp: ");
+            Serial.println(detected_measurement.timestamp.timestamp());
             weight::tare_without_delay();
             break;
         case detector::REQUIRE_TARE:
